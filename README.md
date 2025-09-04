@@ -16,8 +16,6 @@ It provides farmers with information on crops, weather updates, and general farm
 - **Chatbot/NLP:** Simple keyword-matching logic  
 - **APIs:** Weather API integration  
 
-## Learning & Motivation
-
 This project reflects my interest for NLP and AI, at a beginner level. While the current implementation is super simple, it demonstrates my ability to structure code, integrate APIs, and build a functional platform within a week. I am curious to learn more about advanced AI/NLP techniques and contribute to real-world applications.
 
 ## Notes
