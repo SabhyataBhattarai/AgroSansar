@@ -1,0 +1,261 @@
+﻿@model AgroSansar.Models.WeatherForecast
+@{
+    var city = Model?.Location ?? "Kathmandu";
+    var cities = new List<string> { "Kathmandu", "Pokhara", "Biratnagar", "Dharan", "Itahari" };
+}
+
+<div class="container py-5 text-center">
+    <!-- Hero Section -->
+    <h1 class="display-4 fw-bold">Welcome to AgroSansar</h1>
+    <p class="lead text-dark mb-4">
+        Your AI-powered farming assistant, ready to guide you on crops and weather.
+    </p>
+</div>
+
+@functions {
+    public string EmojiFor(string cond)
+    {
+        if (string.IsNullOrWhiteSpace(cond)) return "🌤️";
+        var t = cond.ToLowerInvariant();
+        if (t.Contains("thunder")) return "⛈️";
+        if (t.Contains("storm")) return "🌩️";
+        if (t.Contains("rain") || t.Contains("drizzle")) return "🌧️";
+        if (t.Contains("snow") || t.Contains("sleet")) return "❄️";
+        if (t.Contains("cloud") || t.Contains("overcast")) return "☁️";
+        if (t.Contains("sunny") || t.Contains("clear")) return "☀️";
+        if (t.Contains("mist") || t.Contains("fog") || t.Contains("haze")) return "🌫️";
+        if (t.Contains("wind")) return "🌬️";
+        return "🌤️";
+    }
+}
+
+<style>
+    body {
+        font-family: 'Segoe UI', system-ui, Roboto, Arial, sans-serif;
+        background: #f3fff7;
+    }
+
+    .wrap {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .shell {
+        background: #fff;
+        border-radius: 1.5rem;
+        box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+        padding: 2rem;
+    }
+
+    .title {
+        font-weight: 800;
+        text-align: center;
+        color: #065f46;
+    }
+
+    .city-form {
+        display: flex;
+        justify-content: center;
+        margin: 1.5rem 0;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .city-label {
+        font-weight: 600;
+        color: #065f46;
+        margin-right: 0.5rem;
+    }
+
+    .city-select {
+        padding: 0.7rem 2.5rem 0.7rem 1rem; /* extra right padding for the arrow */
+        border-radius: 9999px;
+        border: 2px solid #16a34a;
+        appearance: none;
+        background: #fff url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5' stroke='%2316a34a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.9rem center / 20px 20px;
+        font-weight: 600;
+        color: #065f46;
+        cursor: pointer;
+    }
+
+    .today-card {
+        background: linear-gradient(135deg,#16a34a,#0d9488);
+        color: white;
+        border-radius: 1.5rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .today-date {
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+
+    .today-temp {
+        font-size: 3rem;
+        font-weight: 800;
+        margin: .25rem 0;
+    }
+
+    .today-cond {
+        font-size: 1.2rem;
+        font-weight: 600;
+        opacity: .9;
+        margin-bottom: .5rem;
+    }
+
+    .today-minmax {
+        font-size: 1rem;
+        font-weight: 500;
+        opacity: .85;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
+        gap: 1rem;
+    }
+
+    .wx-card {
+        background: #fff;
+        border-radius: 1rem;
+        padding: 1rem;
+        text-align: center;
+        border: 2px solid #16a34a;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .wx-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+        }
+
+    .wx-date {
+        font-weight: 700;
+        color: #15803d;
+    }
+
+    .wx-icon {
+        font-size: 2rem;
+        margin: .25rem 0;
+    }
+
+    .wx-cond {
+        color: #64748b;
+        font-weight: 600;
+        margin: .25rem 0;
+    }
+
+    .wx-temp {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0f766e;
+    }
+
+    .wx-minmax {
+        font-size: .9rem;
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+</style>
+
+
+
+
+<div class="wrap">
+    <div class="shell">
+        <h2 class="title">Weather Forecast for Today 🌤️</h2>
+
+        <form method="get" asp-action="Index" class="city-form">
+            <label for="city" class="city-label">Choose a city:</label>
+            <select id="city" name="city" class="city-select" onchange="this.form.submit()">
+                @foreach (var c in cities)
+                {
+                    if (c == city)
+                    {
+                        <option value="@c" selected>@c</option>
+                    }
+                    else
+                    {
+                        <option value="@c">@c</option>
+                    }
+                }
+            </select>
+
+        </form>
+
+        @if (Model != null)
+        {
+            <div class="today-card">
+                <div class="today-date">@Model.Today.DayName, @Model.Today.Date</div>
+                <div style="font-size:3rem;">@EmojiFor(Model.Today.Condition)</div>
+                <div class="today-cond">@Model.Today.Condition</div>
+                <div class="today-temp">@Model.Today.AvgTempC&nbsp;°C</div>
+                <div class="today-minmax">Min: @Model.Today.MinTempC °C · Max: @Model.Today.MaxTempC °C</div>
+            </div>
+
+            <h3 style="color:#15803d; margin-bottom:1rem;">Upcoming Days</h3>
+            <div class="grid">
+                @foreach (var day in Model.NextDays)
+                {
+                    <div class="wx-card">
+                        <div class="wx-date">@day.DayName, @day.Date</div>
+                        <div class="wx-icon">@EmojiFor(day.Condition)</div>
+                        <div class="wx-cond">@day.Condition</div>
+                        <div class="wx-temp">@day.AvgTempC&nbsp;°C</div>
+                        <div class="wx-minmax">Min: @day.MinTempC °C · Max: @day.MaxTempC °C</div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div style="text-align:center; padding:2rem; color:#6b7280;">
+                @ViewBag.Error ?? "No weather data available. 🫠"
+            </div>
+        }
+    </div>
+</div>
+
+
+<!-- Chatbot Link at the bottom -->
+<section class="row justify-content-center g-4 mt-5">
+    <div class="col-md-8">
+        <!-- wider column -->
+        <a href="/Chatbot/Ask" class="text-decoration-none">
+            <div class="card shadow-lg border-success rounded-4 hover-scale" style="transition: transform 0.3s;">
+                <div class="card-body text-center p-5">
+                    <h3 class="card-title text-success mb-3">Crop Advisory 🌱</h3>
+                    <p class="card-text text-dark fs-5">
+                        Expert suggestions on planting, harvesting, and crop health.
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+</section>
+
+<style>
+    .card {
+        background: #fff;
+        padding: 30px 50px;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        text-align: center;
+        max-width: 100%; /* allow full stretch */
+        min-width: 600px; /* force it wider */
+        margin: 0 auto; /* keep it centered */
+    }
+
+        .card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+</style>

@@ -1,0 +1,213 @@
+﻿@{
+    ViewData["Title"] = "Crop Advisory Chatbot";
+}
+
+<div class="chatbot-container container py-5">
+    <h1 class="text-center mb-4 fw-bold">KrishiBot 🌱</h1>
+
+    <!-- Chat Window -->
+    <div id="chatBox" class="chat-window mb-3"></div>
+
+    <!-- Input + Buttons -->
+    <div class="input-group d-flex flex-column flex-sm-row align-items-center gap-2">
+        <input type="text" id="userInput" class="form-control px-3" placeholder="Type your message..." />
+        <button class="btn btn-success" id="sendBtn">Send</button>
+        <button class="btn btn-outline-success" id="voiceBtn">🎤</button>
+        <button class="btn btn-outline-success" id="volumeBtn">🔊</button>
+    </div>
+</div>
+
+<style>
+    /* Container */
+    .chatbot-container {
+        max-width: 750px;
+        background: linear-gradient(135deg, #eafaf1, #d0f0e0);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        margin-top: 30px;
+    }
+
+        .chatbot-container h1 {
+            color: #2d572c;
+            font-size: 2.2rem;
+        }
+
+    /* Chat Window */
+    .chat-window {
+        height: 460px;
+        overflow-y: auto;
+        background: #fdfdfd;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: inset 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+        .chat-window::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-window::-webkit-scrollbar-thumb {
+            background-color: rgba(45, 87, 44, 0.6);
+            border-radius: 4px;
+        }
+
+    /* Chat Bubbles */
+    .chat-bubble {
+        display: inline-block; /* wraps content */
+        max-width: 70%; /* never bigger than 70% */
+        padding: 10px 14px; /* padding all around */
+        border-radius: 18px;
+        margin-bottom: 8px;
+        word-wrap: break-word;
+        word-break: break-word;
+        font-size: 1rem;
+        line-height: 1.4;
+        box-sizing: border-box; /* include padding in width */
+        width: fit-content; /* SHRINK to text size */
+    }
+
+
+    /* User bubble */
+    .user-bubble {
+        background-color: #2d572c;
+        color: white;
+        margin-left: auto;
+        margin-right: 0;
+        text-align: right;
+        display: block;
+    }
+
+    /* Bot bubble */
+    .bot-bubble {
+        background-color: #e0f2e9;
+        color: #2d572c;
+        margin-right: auto;
+        margin-left: 0;
+        text-align: left;
+        display: block;
+    }
+
+
+
+    /* Text Input */
+    #userInput {
+        flex: 1;
+        border-radius: 8px;
+        border: 1px solid #2d572c;
+        padding: 0.5rem 0.75rem;
+        font-size: 1rem;
+    }
+
+    /* Buttons */
+    #sendBtn, #voiceBtn, #volumeBtn {
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    #sendBtn {
+        background-color: #2d572c;
+        color: white;
+        border: none;
+    }
+
+        #sendBtn:hover {
+            background-color: #1b3f1c;
+            transform: translateY(-2px);
+        }
+
+    #voiceBtn, #volumeBtn {
+        background-color: #3a6a44;
+        color: white;
+        border: none;
+    }
+
+        #voiceBtn:hover, #volumeBtn:hover {
+            background-color: #2d572c;
+            transform: translateY(-2px);
+        }
+
+    /* Keep input and buttons aligned nicely */
+    .input-group input,
+    .input-group button {
+        height: 45px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        const chatBox = document.getElementById('chatBox');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const volumeBtn = document.getElementById('volumeBtn');
+        const voiceBtn = document.getElementById('voiceBtn');
+
+        function appendMessage(content, sender) {
+            const msg = document.createElement('div');
+            msg.classList.add('chat-bubble', sender === 'user' ? 'user-bubble' : 'bot-bubble');
+            msg.innerText = content;
+            chatBox.appendChild(msg);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+            appendMessage(text, 'user');
+            userInput.value = '';
+            try {
+                const res = await fetch('/Chatbot/SendMessage', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+                const data = await res.json();
+                appendMessage(data.reply, 'bot');
+            } catch {
+                appendMessage("🤖 Something went wrong...", 'bot');
+            }
+        }
+
+        // Send on button click
+        sendBtn.addEventListener('click', sendMessage);
+
+        // Send on Enter key press
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Read last message
+        volumeBtn.addEventListener('click', () => {
+            const lastMsg = chatBox.lastChild;
+            if (lastMsg) {
+                const utter = new SpeechSynthesisUtterance(lastMsg.innerText);
+                utter.lang = 'en-US';
+                speechSynthesis.speak(utter);
+            }
+        });
+
+        // Voice input
+        voiceBtn.addEventListener('click', () => {
+            if (!('webkitSpeechRecognition' in window)) {
+                alert("Your browser does not support voice input");
+                return;
+            }
+            const recognition = new webkitSpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+            recognition.start();
+
+            recognition.onresult = function(event) {
+                userInput.value = event.results[0][0].transcript;
+            };
+
+            recognition.onerror = function(event) {
+                console.error(event.error);
+            };
+        });
+    </script>
+}
